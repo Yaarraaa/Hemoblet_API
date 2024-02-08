@@ -38,6 +38,7 @@ const DoctorShema = new mongoose.Schema({
         type: String,
         required: true,
         maxlength: 14,
+        unique: true
     },
     location: {
         type: String,
