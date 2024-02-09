@@ -1,3 +1,4 @@
+const { string } = require('joi');
 const mongoose = require('mongoose')
 
 // doctor schema
@@ -50,6 +51,9 @@ const DoctorShema = new mongoose.Schema({
         required: true,
         minlength: 2,
         maxlength: 30
+    },
+    resetCode: {
+        type: String
     }
 }, {
     timestamps: true

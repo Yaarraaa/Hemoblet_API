@@ -4,6 +4,8 @@ const { Doctor } = require("../models/Doctor");
 const { signupValidate, signinValidate } = require('../validator/auth.validator')
 const { createError } = require('../shared/utils/APIError')
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
+const {sendEmail} = require('../shared/utils/email')
 
 
 /**
@@ -45,12 +47,12 @@ const signupController = asyncHandler(async (req, res, next) => {
 })
 
 /**
- * @desc     Signin New User
+ * @desc     Signin User
  * @router  /api/auth/signin
  * @method  POST
  * @access public
 */
-const signinController = async (req, res, next) => {
+const signinController = asyncHandler(async (req, res, next) => {
     const { error } = signinValidate(req.body)
     if (error) 
         return next(createError(`${error.details[0].message}`, 404))
@@ -64,7 +66,7 @@ const signinController = async (req, res, next) => {
     const matchPassword = await bcrypt.compare(password, existing.password)
     if (!matchPassword) return next(createError('Invalid email or password', 400));
 
-    const token = jwt.sign({ id: existing._id }, process.env.JWT_SECRET, { expiresIn: '5d' })
+    const token = jwt.sign({ id: existing._id }, process.env.JWT_SECRET, { expiresIn: '30d' })
     res.status(201).json({
         user: {
             id: existing.id,
@@ -73,9 +75,70 @@ const signinController = async (req, res, next) => {
         },
         token,
      });
-}
+})
+
+/**
+ * @desc     Forget Password
+ * @router  /api/auth/forget-password
+ * @method  POST
+ * @access public
+*/
+const forgetPassword = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+
+    console.log('email: ', email)
+
+    const doctor = await Doctor.findOne({ email: email })
+    console.log('doctor: ', doctor)
+    if (!doctor) {
+        return next(createError('Doctor not found', 401))
+    }
+
+
+    const resetCode = crypto.randomBytes(6).toString('hex')
+
+    doctor.resetCode = resetCode;
+    console.log(doctor.resetCode)
+    await doctor.save()
+    const message = `Your password reset code is: ${resetCode}`
+
+    await sendEmail(doctor.email, 'Password change request received', message)
+
+    res.status(200).json({ message: 'Reset code sent successfully' });
+})
+
+/**
+ * @desc     Reset Password
+ * @router  /api/auth/reset-password
+ * @method  POST
+ * @access public
+*/
+const resetPassword = asyncHandler(async (req, res, next) => {
+    const { email, resetCode, newPassword, confirmNewPassword } = req.body
+
+    const doctor = await Doctor.findOne({ email })
+    if (!doctor) {
+        return next(createError('Doctor not found', 404))
+    }
+    if (!doctor.resetCode || resetCode !== doctor.resetCode) {
+        return next(createError('Invalid reset code', 400));
+    }
+
+    const salt = await bcrypt.genSalt(10)
+
+    doctor.password = await bcrypt.hash(newPassword, salt)
+    doctor.confirmPassword = await bcrypt.hash(confirmNewPassword, salt)
+    doctor.resetCode = undefined
+
+    await doctor.save()
+
+    res.status(200).json({ message: 'Password reset successful' });
+})
+
 
 module.exports = {
     signupController,
-    signinController
+    signinController,
+    forgetPassword,
+    resetPassword
 }
