@@ -15,6 +15,15 @@ function signupValidate(obj) {
     return schema.validate(obj);
 }
 
+function signinValidate(obj) {
+    const schema = joi.object({
+       email: joi.string().trim().min(5).max(50).required().email(),
+       password: passwordComplexity().required(),
+    });
+    return schema.validate(obj);
+ }
+
 module.exports = {
-    signupValidate
+    signupValidate,
+    signinValidate
 }
