@@ -24,17 +24,23 @@ const signupController = asyncHandler(async (req, res, next) => {
 
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt)
+    const hashedConfirmPassword = await bcrypt.hash(confirmPassword, salt)
+
+    if (password != confirmPassword) {
+        return next(createError('Password confirmation doesn\'t match Password', 404))
+    }
 
     const doctor = await Doctor.create({
         username,
         email,
         password: hashedPassword,
-        confirmPassword,
+        confirmPassword: hashedConfirmPassword,
         phone,
         ID,
         location,
         experience
     })
+
     res.status(200).json('signup success, please login')
 })
 
