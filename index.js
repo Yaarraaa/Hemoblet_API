@@ -19,4 +19,4 @@ app.use(notFound)
 
 const PORT = process.env.PORT || 8000
 
-app.listen(PORT, ()=> console.log(`server is runing in ${process.env.NODE_ENV} mode on prot ${PORT}`))
+app.listen(PORT, ()=> console.log(`server is runing on prot ${PORT}`))
