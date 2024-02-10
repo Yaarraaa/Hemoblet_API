@@ -13,15 +13,15 @@ Finally, you need to set up the environment variables:
 
 ```env
 # APP_SETTINGS
-PORT : app listening port
+PORT = app listening port
 
 # DB
-MONGO_URI : MongoDb URI
+MONGO_URI = MongoDb URI
 
 # JWT
-JWT_SECRET: should be at lest 32 character
+JWT_SECRET = should be at lest 32 character
 
 # NODEMAILER
-APP_EMAIL_ADDRESS: sender email address
-APP_EMAIL_PASSWORD: sender email app passwords
+APP_EMAIL_ADDRESS = sender email address
+APP_EMAIL_PASSWORD = sender email app passwords
 ```
